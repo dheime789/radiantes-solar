@@ -1,135 +1,201 @@
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { MessageCircle, DollarSign, ArrowLeft, Lock, KeyRound } from 'lucide-react';
+import { ArrowLeft, Trash2, User, Phone, MapPin, DollarSign, Image, Plus, Save, LogOut } from 'lucide-react';
+import './App.css';
 
 export function Admin({ voltar }) {
-    const [autenticado, setAutenticado] = useState(false);
-    const [senha, setSenha] = useState('');
-    const [clientes, setClientes] = useState([]);
+    const [abaAtiva, setAbaAtiva] = useState('simulacoes'); // Controla qual tela aparece
+    const [simulacoes, setSimulacoes] = useState([]);
+    const [depoimentos, setDepoimentos] = useState([]);
+    const [loading, setLoading] = useState(true);
 
+    // Formulário para novo depoimento/foto
+    const [novoDepoimento, setNovoDepoimento] = useState({ nomeCliente: '', cidade: '', texto: '', fotoUrl: '' });
+
+    // --- CARREGAR DADOS AO ABRIR ---
     useEffect(() => {
-        if (autenticado) {
-            carregarClientes();
-        }
-    }, [autenticado]);
+        carregarDados();
+    }, []);
 
-    const carregarClientes = async () => {
+    const carregarDados = async () => {
+        setLoading(true);
         try {
-            const resposta = await axios.get('https://radiantes-solar-production.up.railway.app/api/orcamento/clientes');
-            setClientes(resposta.data.reverse());
-        } catch (erro) {
-            alert("Erro ao buscar clientes. O Java está ligado?");
+            // Puxa o histórico
+            const respSimulacoes = await axios.get('https://radiantes-solar-production.up.railway.app/api/admin/simulacoes');
+            setSimulacoes(respSimulacoes.data);
+
+            // Puxa as fotos da galeria
+            const respDepoimentos = await axios.get('https://radiantes-solar-production.up.railway.app/api/admin/depoimentos');
+            setDepoimentos(respDepoimentos.data);
+        } catch (error) {
+            console.error("Erro ao carregar:", error);
+        } finally {
+            setLoading(false);
         }
     };
 
-    const verificarSenha = () => {
-        if (senha === 'radiante2025') {
-            setAutenticado(true);
-        } else {
-            alert("Senha incorreta! Tente novamente.");
-            setSenha('');
-        }
+    // --- AÇÕES DO SISTEMA ---
+    const apagarSimulacao = async (id) => {
+        if (!confirm('Tem certeza que deseja apagar este histórico?')) return;
+        try {
+            await axios.delete(`https://radiantes-solar-production.up.railway.app/api/admin/simulacoes/${id}`);
+            setSimulacoes(simulacoes.filter(item => item.id !== id));
+        } catch (error) { alert('Erro ao apagar.'); }
     };
 
-    // --- CORREÇÃO AQUI: Lógica blindada para o WhatsApp ---
-    const chamarNoZap = (telefone, nome) => {
-        if (!telefone) {
-            alert("Este cliente não cadastrou telefone.");
+    const salvarDepoimento = async () => {
+        if (!novoDepoimento.nomeCliente || !novoDepoimento.fotoUrl) {
+            alert('Preencha pelo menos o Nome e o Link da Foto!');
             return;
         }
-
-        // 1. Limpa o número (tira traços, parênteses e espaços)
-        let num = telefone.replace(/\D/g, '');
-
-        // 2. Verifica o código do país (55)
-        // Se o número tiver 10 ou 11 dígitos (Ex: 69 99999-9999), nós adicionamos o 55.
-        // Se ele já tiver 12 ou 13 dígitos, assumimos que já tem o 55.
-        if (num.length <= 11) {
-            num = `55${num}`;
-        }
-
-        const link = `https://wa.me/${num}?text=Olá ${nome}, vi sua simulação no site da Radiante's! Podemos conversar?`;
-        window.open(link, '_blank');
+        try {
+            const resp = await axios.post('https://radiantes-solar-production.up.railway.app/api/admin/depoimentos', novoDepoimento);
+            setDepoimentos([...depoimentos, resp.data]);
+            setNovoDepoimento({ nomeCliente: '', cidade: '', texto: '', fotoUrl: '' }); // Limpa form
+            alert('Foto adicionada com sucesso!');
+        } catch (error) { alert('Erro ao salvar depoimento.'); }
     };
 
-    if (!autenticado) {
-        return (
-            <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', background: '#0f172a', color: 'white' }}>
-                <div style={{ background: '#1e293b', padding: '40px', borderRadius: '16px', textAlign: 'center', width: '90%', maxWidth: '400px', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.3)' }}>
-                    <div style={{ background: '#334155', width: '60px', height: '60px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px auto' }}>
-                        <Lock size={32} color="#fbbf24" />
-                    </div>
-                    <h2 style={{ marginBottom: '20px', fontSize: '1.5rem' }}>Área Restrita</h2>
-                    <p style={{ color: '#94a3b8', marginBottom: '20px' }}>Digite a senha de administrador.</p>
+    const apagarDepoimento = async (id) => {
+        if (!confirm('Apagar esta foto da galeria?')) return;
+        try {
+            await axios.delete(`https://radiantes-solar-production.up.railway.app/api/admin/depoimentos/${id}`);
+            setDepoimentos(depoimentos.filter(item => item.id !== id));
+        } catch (error) { alert('Erro ao apagar.'); }
+    };
 
-                    <div style={{ display: 'flex', alignItems: 'center', background: '#0f172a', border: '1px solid #334155', borderRadius: '8px', padding: '10px', marginBottom: '20px' }}>
-                        <KeyRound size={20} color="#64748b" style={{ marginRight: '10px' }} />
-                        <input
-                            type="password"
-                            placeholder="Senha"
-                            value={senha}
-                            onChange={(e) => setSenha(e.target.value)}
-                            onKeyDown={(e) => e.key === 'Enter' && verificarSenha()}
-                            style={{ background: 'transparent', border: 'none', color: 'white', width: '100%', outline: 'none', fontSize: '1rem' }}
-                        />
-                    </div>
+    return (
+        <div style={{ minHeight: '100vh', background: '#f1f5f9', padding: '20px', position: 'absolute', top: 0, left: 0, width: '100%', zIndex: 2000 }}>
 
-                    <button onClick={verificarSenha} style={{ width: '100%', padding: '12px', background: '#fbbf24', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', color: '#78350f' }}>
-                        Entrar
+            {/* --- CABEÇALHO (AGORA COM FUNDO BRANCO PARA NÃO SUMIR O TEXTO) --- */}
+            <div style={{ maxWidth: '1000px', margin: '0 auto', background: 'white', padding: '20px', borderRadius: '16px', display: 'flex', flexDirection: 'column', gap: '15px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}>
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <h2 style={{ margin: 0, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        🚀 Painel do Dono
+                    </h2>
+                    <button onClick={voltar} style={{ background: '#fee2e2', color: '#ef4444', border: 'none', padding: '8px 15px', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px', fontWeight: 'bold' }}>
+                        <LogOut size={18} /> Sair
                     </button>
-                    <button onClick={voltar} style={{ marginTop: '15px', background: 'transparent', border: 'none', color: '#64748b', cursor: 'pointer', textDecoration: 'underline' }}>
-                        Voltar para o site
+                </div>
+
+                {/* --- BOTÕES DE NAVEGAÇÃO (ABAS) --- */}
+                <div style={{ display: 'flex', gap: '10px', background: '#f8fafc', padding: '5px', borderRadius: '10px' }}>
+                    <button
+                        onClick={() => setAbaAtiva('simulacoes')}
+                        style={{ flex: 1, padding: '12px', borderRadius: '8px', border: 'none', background: abaAtiva === 'simulacoes' ? '#fbbf24' : 'transparent', color: abaAtiva === 'simulacoes' ? '#78350f' : '#64748b', fontWeight: 'bold', cursor: 'pointer', transition: 'all 0.2s' }}>
+                        📊 Histórico de Clientes
+                    </button>
+                    <button
+                        onClick={() => setAbaAtiva('galeria')}
+                        style={{ flex: 1, padding: '12px', borderRadius: '8px', border: 'none', background: abaAtiva === 'galeria' ? '#fbbf24' : 'transparent', color: abaAtiva === 'galeria' ? '#78350f' : '#64748b', fontWeight: 'bold', cursor: 'pointer', transition: 'all 0.2s' }}>
+                        📸 Galeria de Fotos
                     </button>
                 </div>
             </div>
-        );
-    }
 
-    return (
-        <div style={{ padding: '20px 10px', background: '#f1f5f9', minHeight: '100vh', fontFamily: 'Inter, sans-serif' }}>
-            <div className="container" style={{ maxWidth: '800px', margin: '0 auto' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                    <h2 style={{ color: '#1e293b', fontSize: '1.5rem', fontWeight: 'bold' }}>Área do Dono 🚀</h2>
-                    <button onClick={voltar} style={{ padding: '8px 15px', cursor: 'pointer', border: '1px solid #cbd5e1', background: 'white', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                        <ArrowLeft size={16} /> Sair
-                    </button>
-                </div>
+            <div style={{ maxWidth: '1000px', margin: '20px auto' }}>
 
-                <div style={{ background: 'white', borderRadius: '12px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)', overflowX: 'auto' }}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '600px' }}>
-                        <thead style={{ background: '#0f172a', color: 'white' }}>
-                        <tr>
-                            <th style={{ padding: '15px', textAlign: 'left', minWidth: '150px' }}>Cliente</th>
-                            <th style={{ padding: '15px', textAlign: 'left', minWidth: '120px' }}>Conta (R$)</th>
-                            <th style={{ padding: '15px', textAlign: 'center', minWidth: '100px' }}>Ação</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        {clientes.map((cliente) => (
-                            <tr key={cliente.id} style={{ borderBottom: '1px solid #e2e8f0' }}>
-                                <td style={{ padding: '15px' }}>
-                                    <div style={{ fontWeight: 'bold', color: '#334155' }}>{cliente.nome}</div>
-                                    <div style={{ fontSize: '0.85rem', color: '#94a3b8' }}>{cliente.telefone}</div>
-                                </td>
-                                <td style={{ padding: '15px' }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '5px', color: '#16a34a', fontWeight: 'bold' }}>
-                                        <DollarSign size={16} /> {cliente.valorConta}
-                                    </div>
-                                </td>
-                                <td style={{ padding: '15px', textAlign: 'center' }}>
+                {/* --- ABA 1: HISTÓRICO --- */}
+                {abaAtiva === 'simulacoes' && (
+                    <div style={{ background: 'white', padding: '20px', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}>
+                        <h3 style={{ marginTop: 0, marginBottom: '20px', color: '#334155' }}>Quem simulou no site:</h3>
+
+                        {loading ? <p>Carregando...</p> : (
+                            <div style={{ overflowX: 'auto' }}>
+                                <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '600px' }}>
+                                    <thead>
+                                    <tr style={{ background: '#f8fafc', color: '#64748b', textAlign: 'left' }}>
+                                        <th style={{ padding: '15px' }}>Cliente</th>
+                                        <th style={{ padding: '15px' }}>Telefone</th>
+                                        <th style={{ padding: '15px' }}>Conta</th>
+                                        <th style={{ padding: '15px' }}>Ação</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    {simulacoes.map(sim => (
+                                        <tr key={sim.id} style={{ borderBottom: '1px solid #e2e8f0' }}>
+                                            <td style={{ padding: '15px' }}>
+                                                <strong>{sim.nomeCliente}</strong><br/>
+                                                <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>{sim.cidade}</span>
+                                            </td>
+                                            <td style={{ padding: '15px' }}>{sim.telefone}</td>
+                                            <td style={{ padding: '15px', color: '#16a34a', fontWeight: 'bold' }}>R$ {sim.valorConta}</td>
+                                            <td style={{ padding: '15px' }}>
+                                                <button onClick={() => apagarSimulacao(sim.id)} style={{ background: '#fee2e2', color: '#ef4444', border: 'none', padding: '8px', borderRadius: '8px', cursor: 'pointer' }}>
+                                                    <Trash2 size={18} />
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                {/* --- ABA 2: GALERIA DE FOTOS (AQUI VOCÊ POSTA!) --- */}
+                {abaAtiva === 'galeria' && (
+                    <div>
+                        {/* Formulário para adicionar foto */}
+                        <div style={{ background: 'white', padding: '25px', borderRadius: '16px', marginBottom: '20px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}>
+                            <h3 style={{ marginTop: 0, color: '#334155', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                <Plus size={20} /> Adicionar Instalação Realizada
+                            </h3>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                                <input
+                                    placeholder="Nome do Cliente (ex: Sr. João)"
+                                    value={novoDepoimento.nomeCliente}
+                                    onChange={e => setNovoDepoimento({...novoDepoimento, nomeCliente: e.target.value})}
+                                    style={{ padding: '12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+                                />
+                                <input
+                                    placeholder="Cidade (ex: Ji-Paraná)"
+                                    value={novoDepoimento.cidade}
+                                    onChange={e => setNovoDepoimento({...novoDepoimento, cidade: e.target.value})}
+                                    style={{ padding: '12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+                                />
+                                <input
+                                    placeholder="Link da Foto (Cole o link aqui)"
+                                    value={novoDepoimento.fotoUrl}
+                                    onChange={e => setNovoDepoimento({...novoDepoimento, fotoUrl: e.target.value})}
+                                    style={{ padding: '12px', borderRadius: '8px', border: '1px solid #cbd5e1' }}
+                                />
+                                <textarea
+                                    placeholder="Depoimento ou Detalhes (ex: Economia de R$ 500/mês)"
+                                    value={novoDepoimento.texto}
+                                    onChange={e => setNovoDepoimento({...novoDepoimento, texto: e.target.value})}
+                                    style={{ padding: '12px', borderRadius: '8px', border: '1px solid #cbd5e1', minHeight: '80px' }}
+                                />
+                                <button
+                                    onClick={salvarDepoimento}
+                                    style={{ background: '#16a34a', color: 'white', padding: '15px', borderRadius: '8px', border: 'none', fontWeight: 'bold', cursor: 'pointer', display: 'flex', justifyContent: 'center', gap: '10px' }}>
+                                    <Save size={20} /> Publicar no Site
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Lista das fotos que já estão no site */}
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '20px' }}>
+                            {depoimentos.map(dep => (
+                                <div key={dep.id} style={{ background: 'white', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)', position: 'relative' }}>
+                                    <img src={dep.fotoUrl} alt={dep.nomeCliente} style={{ width: '100%', height: '200px', objectFit: 'cover' }} />
                                     <button
-                                        onClick={() => chamarNoZap(cliente.telefone, cliente.nome)}
-                                        style={{ background: '#25D366', color: 'white', border: 'none', padding: '8px 12px', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px', margin: '0 auto', whiteSpace: 'nowrap' }}
-                                    >
-                                        <MessageCircle size={18} /> Chamar
+                                        onClick={() => apagarDepoimento(dep.id)}
+                                        style={{ position: 'absolute', top: '10px', right: '10px', background: 'rgba(255,0,0,0.8)', color: 'white', border: 'none', borderRadius: '50%', width: '30px', height: '30px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                        <Trash2 size={16} />
                                     </button>
-                                </td>
-                            </tr>
-                        ))}
-                        </tbody>
-                    </table>
-                    {clientes.length === 0 && <p style={{ padding: '20px', textAlign: 'center', color: '#64748b' }}>Nenhum cliente cadastrado ainda.</p>}
-                </div>
+                                    <div style={{ padding: '15px' }}>
+                                        <h4 style={{ margin: 0 }}>{dep.nomeCliente}</h4>
+                                        <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>{dep.cidade}</span>
+                                        <p style={{ fontSize: '0.9rem', color: '#64748b', fontStyle: 'italic' }}>"{dep.texto}"</p>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );
