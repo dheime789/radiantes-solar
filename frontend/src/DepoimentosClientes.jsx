@@ -96,19 +96,26 @@ export function DepoimentosClientes() {
                              onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-5px)'}
                              onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
                         >
-                            {/* FOTO DO CLIENTE */}
+
+                            {/* FOTO DO CLIENTE - Versão Profissional Maior */}
                             <div style={{
-                                width: '100px',
-                                height: '100px',
+                                width: '130px', /* Aumentado de 100px para 130px */
+                                height: '130px', /* Aumentado para manter o círculo */
                                 borderRadius: '50%',
                                 overflow: 'hidden',
-                                marginBottom: '20px',
-                                border: '3px solid #fbbf24'
+                                marginBottom: '25px', /* Um pouco mais de espaço abaixo */
+                                border: '4px solid #fbbf24', /* Borda um pouco mais grossa */
+                                boxShadow: '0 8px 20px rgba(251, 191, 36, 0.3)', /* Sombra dourada suave para destacar */
+                                display: 'flex',
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                                background: '#f8fafc' /* Fundo cinza claro caso a imagem demore a carregar */
                             }}>
                                 <img
                                     src={dep.fotoUrl || "https://via.placeholder.com/150"}
                                     alt={dep.nomeCliente}
                                     style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                    onError={(e) => { e.target.onerror = null; e.target.src = "https://via.placeholder.com/150?text=Sem+Foto"; }} /* Mostra imagem padrão se o link quebrar */
                                 />
                             </div>
 
