@@ -1,0 +1,45 @@
+/* Importando a fonte INTER (Moderna e limpa) */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
+
+:root {
+    font-family: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
+    line-height: 1.5;
+    font-weight: 400;
+    color-scheme: light dark;
+    background-color: #f8fafc;
+}
+
+/* Reset básico para tirar margens estranhas */
+body {
+    margin: 0;
+    padding: 0;
+    min-width: 320px;
+    min-height: 100vh;
+}
+
+/* --- REGRAS PARA CELULAR (Telas menores que 600px) --- */
+@media (max-width: 600px) {
+
+    /* Ajusta os títulos gigantes para caberem na tela */
+    h1 { font-size: 1.2rem !important; }
+    h2 { font-size: 1.8rem !important; }
+    h3 { font-size: 1.4rem !important; }
+
+    /* Ajusta o container principal para não colar na borda */
+    .container {
+        padding-left: 15px !important;
+        padding-right: 15px !important;
+    }
+
+    /* Botões ficam mais fáceis de clicar com o dedo */
+    button {
+        padding: 14px !important;
+        font-size: 1rem !important;
+    }
+
+    /* Aumenta o campo de digitar para não precisar dar zoom */
+    input {
+        font-size: 16px !important; /* Evita zoom automático no iPhone */
+        padding: 12px !important;
+    }
+}
