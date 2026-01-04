@@ -1,6 +1,6 @@
 /* =========================================
    ARQUIVO DE ESTILO: Radiante's Solar
-   Versão: Final Mobile + Dark Mode Fix
+   Versão: Corrigida (Sintaxe CSS Padrão)
    ========================================= */
 
 /* --- 1. IMPORTAÇÃO DE FONTE E VARIÁVEIS --- */
@@ -21,7 +21,7 @@ body {
   font-family: 'Inter', sans-serif;
   background-color: var(--light);
   color: var(--dark);
-  overflow-x: hidden; /* Evita rolagem lateral indesejada */
+  overflow-x: hidden;
 }
 
 /* --- 2. O FUNDO GIGANTE (HERO) --- */
@@ -29,12 +29,11 @@ body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  /* Fundo com imagem e sobreposição escura */
   background: linear-gradient(rgba(15, 23, 42, 0.85), rgba(15, 23, 42, 0.7)),
   url('https://images.unsplash.com/photo-1509391366360-2e959784a276?q=80&w=2072&auto=format&fit=crop');
   background-size: cover;
   background-position: center;
-  background-attachment: fixed; /* Efeito Parallax */
+  background-attachment: fixed;
 }
 
 /* --- 3. CABEÇALHO E MARCA --- */
@@ -135,7 +134,7 @@ body {
 
 .input-wrapper input {
   width: 100%;
-  padding: 14px 14px 14px 45px;
+  padding: 14px 14px 14px 50px; /* Padding ajustado para afastar do ícone */
   border: 2px solid #e2e8f0;
   border-radius: 12px;
   font-size: 1rem;
@@ -373,37 +372,58 @@ body {
 
 
 /* ==========================================================================
-   11. CORREÇÃO CRÍTICA PARA CELULAR (MODO ESCURO / AUTOFILL)
-   Isso força o texto a ficar PRETO e o fundo BRANCO, ignorando o tema do celular
+   11. CORREÇÃO NUCLEAR (FIXES)
    ========================================================================== */
 
+/* 1. REGRA UNIVERSAL: Texto PRETO e Fundo BRANCO */
 input, select, textarea, .chat-input-area input {
-  color: #000000 !important;       /* Força texto preto */
-  background-color: #ffffff !important; /* Força fundo branco */
-  -webkit-text-fill-color: #000000 !important; /* Garante no iPhone */
+  color: #000000 !important;
+  background-color: #ffffff !important;
+  -webkit-text-fill-color: #000000 !important;
   opacity: 1 !important;
+  box-shadow: none !important;
+  border-color: #e2e8f0 !important;
 }
 
-/* Remove a cor azulada/cinza que o Google coloca quando preenche sozinho */
+/* 2. ESCONDER ÍCONES DE AUTO-PREENCHIMENTO (BONEQUINHOS) - Ignore o erro vermelho aqui! */
+input::-webkit-contacts-auto-fill-button,
+input::-webkit-credentials-auto-fill-button,
+input::-webkit-user-profile-icon {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  position: absolute !important;
+  right: 0 !important;
+  width: 0 !important;
+  height: 0 !important;
+  opacity: 0 !important;
+}
+
+/* 3. CORREÇÃO FUNDO AZUL DO AUTOFILL */
 input:-webkit-autofill,
 input:-webkit-autofill:hover,
 input:-webkit-autofill:focus,
 input:-webkit-autofill:active {
-  -webkit-box-shadow: 0 0 0 30px white inset !important;
+  -webkit-box-shadow: 0 0 0 1000px white inset !important;
   -webkit-text-fill-color: #000 !important;
   transition: background-color 5000s ease-in-out 0s;
 }
 
-/* Garante que o texto de dica (placeholder) seja visível */
+/* 4. GARANTIA DE ESPAÇO EXTRA */
+.input-wrapper input {
+  padding-left: 55px !important;
+}
+
+/* 5. PLACEHOLDER (DICA) VISÍVEL */
 ::placeholder {
   color: #64748b !important;
-  opacity: 1;
+  opacity: 1 !important;
+  -webkit-text-fill-color: #64748b !important;
 }
 
 
-/* --- 12. RESPONSIVIDADE (LAYOUT CELULAR) --- */
+/* --- 12. RESPONSIVIDADE GERAL (CORRIGIDO) --- */
 @media (max-width: 768px) {
-
   .container { padding: 0; overflow-x: hidden; }
   .hero { padding: 20px 15px; align-items: center; }
   .hero h1 { font-size: 2rem; line-height: 1.2; }
@@ -428,7 +448,16 @@ input:-webkit-autofill:active {
 
   .btn-clara-flutuante { bottom: 20px; right: 20px; width: 50px; height: 50px; }
 
-  .grade-depoimentos { flexDirection: column; alignItems: center; }
+  /* AQUI ESTAVA O ERRO: Corrigido de camelCase para kebab-case */
+  .grade-depoimentos {
+    flex-direction: column;
+    align-items: center;
+  }
+
   .card-cliente { width: 100%; max-width: 320px; }
-  .rodape-content { flexDirection: column; gap: 30px; }
+
+  .rodape-content {
+    flex-direction: column;
+    gap: 30px;
+  }
 }
