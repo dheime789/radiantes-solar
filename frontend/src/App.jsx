@@ -5,11 +5,10 @@ import { Admin } from './Admin';
 import { MessageCircle, Lock, User, Phone, MapPin, Zap, Bot, X, Send, Star } from 'lucide-react';
 import { DepoimentosClientes } from './DepoimentosClientes';
 import { Rodape } from './Rodape';
-// --- AQUI ACONTECE A MÁGICA 1: Importamos a sua logo da pasta assets ---
 import logo from './assets/logo.jpg';
 
 function App() {
-    // --- (Toda a lógica permanece IGUAL, não mexi em nada aqui) ---
+    // --- LÓGICA (Mantida igual) ---
     const [dados, setDados] = useState({ nome: '', telefone: '', cidade: '', valorConta: '' });
     const [kitSugerido, setKitSugerido] = useState(null);
     const [loading, setLoading] = useState(false);
@@ -78,18 +77,16 @@ function App() {
         <div className="container">
             {/* HERO SECTION */}
             <div className="hero">
-
-                {/* --- AQUI ACONTECE A MÁGICA 2: Trocamos o ícone pela imagem --- */}
                 <header className="brand-header">
                     <img
                         src={logo}
                         alt="Logo Radiante's"
                         style={{
-                            width: '60px',       // Tamanho da logo
+                            width: '60px',
                             height: '60px',
-                            borderRadius: '50%', // Deixa redondinha
-                            marginRight: '15px', // Espaço entre logo e texto
-                            border: '2px solid #fbbf24' // Borda amarelinha para combinar
+                            borderRadius: '50%',
+                            marginRight: '15px',
+                            border: '2px solid #fbbf24'
                         }}
                     />
                     <span className="brand-name">Radiante's Energia Solar</span>
@@ -110,10 +107,12 @@ function App() {
                             <p style={{ color: '#64748b', fontSize: '0.9rem' }}>Descubra quanto você vai poupar em segundos.</p>
                         </div>
 
+                        {/* --- MUDANÇA AQUI: ÍCONES REMOVIDOS --- */}
+
                         <div className="input-group">
                             <label>Nome Completo</label>
                             <div className="input-wrapper">
-                                <User size={20} />
+                                {/* Ícone User removido aqui */}
                                 <input name="nome" placeholder="Seu nome" value={dados.nome} onChange={handleChange} />
                             </div>
                         </div>
@@ -121,7 +120,7 @@ function App() {
                         <div className="input-group">
                             <label>WhatsApp</label>
                             <div className="input-wrapper">
-                                <Phone size={20} />
+                                {/* Ícone Phone removido aqui */}
                                 <input name="telefone" placeholder="(69) 99999-9999" value={dados.telefone} onChange={handleChange} />
                             </div>
                         </div>
@@ -129,7 +128,7 @@ function App() {
                         <div className="input-group">
                             <label>Cidade</label>
                             <div className="input-wrapper">
-                                <MapPin size={20} />
+                                {/* Ícone MapPin removido aqui */}
                                 <input name="cidade" placeholder="Ex: Ji-Paraná" value={dados.cidade} onChange={handleChange} />
                             </div>
                         </div>
@@ -137,10 +136,12 @@ function App() {
                         <div className="input-group">
                             <label>Valor da Conta (R$)</label>
                             <div className="input-wrapper">
-                                <Zap size={20} />
+                                {/* Ícone Zap removido aqui */}
                                 <input name="valorConta" type="number" placeholder="Ex: 500" value={dados.valorConta} onChange={handleChange} />
                             </div>
                         </div>
+
+                        {/* --- FIM DAS MUDANÇAS --- */}
 
                         <button onClick={simular} disabled={loading} className="btn-simular">
                             {loading ? "Calculando..." : "Ver Meu Projeto 🚀"}
@@ -185,13 +186,7 @@ function App() {
             </div>
 
             <DepoimentosClientes />
-            {/* Bloco de Depoimentos */}
-
-
-            {/* --- AQUI ENTRA O RODAPÉ --- */}
             <Rodape />
-
-            {/* CHAT WIDGET (Pode deixar o chat por último ou antes do rodapé, tanto faz) */}
 
             {/* CHAT WIDGET */}
             {chatAberto && (
