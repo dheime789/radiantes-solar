@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { MessageCircle, X, Send, Bot, Phone } from 'lucide-react'; // Adicionei ícone Phone
+import { MessageCircle, X, Send, Bot, Phone } from 'lucide-react';
 import axios from 'axios';
 
 export function Chatbot() {
@@ -16,11 +16,11 @@ export function Chatbot() {
         fimDoChatRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [mensagens, aberto]);
 
-    // --- FUNÇÃO MÁGICA: Transforma código em Botão ---
+    // --- ESSA É A PARTE QUE CRIA O BOTÃO ---
     const renderizarMensagem = (texto) => {
         // Se a mensagem tiver o código secreto...
-        if (texto.includes('[BTN_ZAP]')) {
-            const textoLimpo = texto.replace('[BTN_ZAP]', ''); // Tira o código do texto
+        if (texto && texto.includes('[BTN_ZAP]')) {
+            const textoLimpo = texto.replace('[BTN_ZAP]', '');
 
             return (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -34,7 +34,7 @@ export function Chatbot() {
                             backgroundColor: '#25D366', // Verde WhatsApp
                             color: 'white',
                             textDecoration: 'none',
-                            padding: '10px 15px',
+                            padding: '12px 20px',
                             borderRadius: '8px',
                             fontWeight: 'bold',
                             display: 'flex',
@@ -46,17 +46,15 @@ export function Chatbot() {
                             transition: '0.2s',
                             boxShadow: '0 2px 5px rgba(0,0,0,0.2)'
                         }}
-                        onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.02)'}
-                        onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
                     >
-                        <Phone size={18} /> Falar com Eduardo
+                        <Phone size={18} /> Falar com Eduardo Agora
                     </a>
                 </div>
             );
         }
-        // Se não tiver código, mostra texto normal
         return texto;
     };
+    // ----------------------------------------
 
     const enviarMensagem = async () => {
         if (!input.trim()) return;
@@ -67,20 +65,19 @@ export function Chatbot() {
         setCarregando(true);
 
         try {
-            // Ajuste aqui a URL se necessário (local ou railway)
-            const resposta = await axios.post('https://radiantes-solar-production.up.railway.app/api/chat', { // Confirme se a rota no backend é /chat ou /api/chat
-                mensagem: novaMensagemUsuario.texto // Importante: O backend espera "message" ou "mensagem"? Verifique no AiController
+            // OBS: Se estiver rodando local, certifique-se que o backend está rodando
+            const resposta = await axios.post('https://radiantes-solar-production.up.railway.app/api/chat', {
+                mensagem: novaMensagemUsuario.texto
             });
 
-            // O backend deve retornar { resposta: "..." } ou o texto direto
-            // Ajuste conforme seu retorno real. Geralmente string direta se for AiAgentService
-            const textoResposta = typeof resposta.data === 'string' ? resposta.data : resposta.data.resposta || resposta.data;
+            // Tratamento para garantir que pegamos o texto certo
+            const textoResposta = typeof resposta.data === 'string' ? resposta.data : resposta.data.resposta || "Erro ao ler resposta";
 
             const novaMensagemIa = { autor: 'ia', texto: textoResposta };
             setMensagens((prev) => [...prev, novaMensagemIa]);
         } catch (erro) {
             console.error(erro);
-            setMensagens((prev) => [...prev, { autor: 'ia', texto: 'Ops! Tive um problema técnico. Pode me chamar no WhatsApp?' }]);
+            setMensagens((prev) => [...prev, { autor: 'ia', texto: 'Ops! Minha conexão falhou. Tente novamente.' }]);
         } finally {
             setCarregando(false);
         }
@@ -132,7 +129,7 @@ export function Chatbot() {
                         alignSelf: msg.autor === 'usuario' ? 'flex-end' : 'flex-start',
                         backgroundColor: msg.autor === 'usuario' ? 'var(--radiante-blue)' : 'white',
                         color: msg.autor === 'usuario' ? 'white' : '#1e293b',
-                        padding: '10px 15px', borderRadius: '12px', maxWidth: '85%', // Aumentei um pouco para caber o botão
+                        padding: '10px 15px', borderRadius: '12px', maxWidth: '85%',
                         boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
                         borderBottomRightRadius: msg.autor === 'usuario' ? '0' : '12px',
                         borderBottomLeftRadius: msg.autor === 'ia' ? '0' : '12px',
