@@ -74,7 +74,7 @@ export function DepoimentosClientes() {
                     </p>
                 </div>
 
-                {/* GRID INTELIGENTE (Não precisa de barra de rolagem, ele ajusta sozinho) */}
+                {/* GRID INTELIGENTE */}
                 <div style={{
                     display: 'grid',
                     gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
@@ -85,7 +85,7 @@ export function DepoimentosClientes() {
                         <div key={dep.id} style={{
                             background: 'white',
                             borderRadius: '20px',
-                            padding: '30px',
+                            padding: '20px', // Reduzi um pouco o padding interno para caber mais foto
                             boxShadow: '0 10px 30px rgba(0,0,0,0.05)',
                             display: 'flex',
                             flexDirection: 'column',
@@ -97,25 +97,28 @@ export function DepoimentosClientes() {
                              onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
                         >
 
-                            {/* FOTO DO CLIENTE - Versão Profissional Maior */}
+                            {/* --- AQUI ESTÁ A MUDANÇA (ESTILO VITRINE) --- */}
                             <div style={{
-                                width: '130px', /* Aumentado de 100px para 130px */
-                                height: '130px', /* Aumentado para manter o círculo */
-                                borderRadius: '50%',
-                                overflow: 'hidden',
-                                marginBottom: '25px', /* Um pouco mais de espaço abaixo */
-                                border: '4px solid #fbbf24', /* Borda um pouco mais grossa */
-                                boxShadow: '0 8px 20px rgba(251, 191, 36, 0.3)', /* Sombra dourada suave para destacar */
+                                width: '100%',        /* 1. Ocupa a largura total do cartão */
+                                height: '220px',      /* 2. Altura fixa (retangular) */
+                                borderRadius: '15px', /* 3. Cantos levemente arredondados */
+                                overflow: 'hidden',   /* 4. Corta o que sobrar da imagem */
+                                marginBottom: '20px',
+                                border: '1px solid #e2e8f0', /* Borda fininha e elegante */
                                 display: 'flex',
                                 justifyContent: 'center',
                                 alignItems: 'center',
-                                background: '#f8fafc' /* Fundo cinza claro caso a imagem demore a carregar */
+                                background: '#f1f5f9'
                             }}>
                                 <img
-                                    src={dep.fotoUrl || "https://via.placeholder.com/150"}
+                                    src={dep.fotoUrl || "https://via.placeholder.com/300x200?text=Sem+Foto"}
                                     alt={dep.nomeCliente}
-                                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                                    onError={(e) => { e.target.onerror = null; e.target.src = "https://via.placeholder.com/150?text=Sem+Foto"; }} /* Mostra imagem padrão se o link quebrar */
+                                    style={{
+                                        width: '100%',
+                                        height: '100%',
+                                        objectFit: 'cover' /* 5. Ajuste inteligente da imagem */
+                                    }}
+                                    onError={(e) => { e.target.onerror = null; e.target.src = "https://via.placeholder.com/150?text=Erro"; }}
                                 />
                             </div>
 
@@ -125,7 +128,7 @@ export function DepoimentosClientes() {
                                 {dep.cidade}
                             </span>
 
-                            {/* ESTRELAS (Fixo em 5 para ficar bonito) */}
+                            {/* ESTRELAS */}
                             <div style={{ display: 'flex', gap: '3px', marginBottom: '15px' }}>
                                 {[1,2,3,4,5].map(star => <Star key={star} size={16} fill="#fbbf24" color="#fbbf24"/>)}
                             </div>

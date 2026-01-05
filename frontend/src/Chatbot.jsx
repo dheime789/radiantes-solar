@@ -1,5 +1,5 @@
-import { useState, useRef, useEffect } from 'react'; // Adicionei useRef e useEffect aqui
-import { MessageCircle, X, Send, Bot } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
+import { MessageCircle, X, Send, Bot, Phone } from 'lucide-react'; // Adicionei ícone Phone
 import axios from 'axios';
 
 export function Chatbot() {
@@ -10,13 +10,53 @@ export function Chatbot() {
     const [input, setInput] = useState('');
     const [carregando, setCarregando] = useState(false);
 
-    // 1. CRIAMOS UMA "REFERÊNCIA" PARA O FIM DA CONVERSA
     const fimDoChatRef = useRef(null);
 
-    // 2. EFEITO MÁGICO: Sempre que a lista de mensagens muda, ele rola para o fim
     useEffect(() => {
         fimDoChatRef.current?.scrollIntoView({ behavior: "smooth" });
-    }, [mensagens, aberto]); // Roda quando chega mensagem ou quando abre o chat
+    }, [mensagens, aberto]);
+
+    // --- FUNÇÃO MÁGICA: Transforma código em Botão ---
+    const renderizarMensagem = (texto) => {
+        // Se a mensagem tiver o código secreto...
+        if (texto.includes('[BTN_ZAP]')) {
+            const textoLimpo = texto.replace('[BTN_ZAP]', ''); // Tira o código do texto
+
+            return (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    <span>{textoLimpo}</span>
+
+                    <a
+                        href="https://wa.me/5569992825501?text=Olá,%20falei%20com%20a%20Clara%20e%20gostaria%20de%20fechar%20o%20negócio!"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{
+                            backgroundColor: '#25D366', // Verde WhatsApp
+                            color: 'white',
+                            textDecoration: 'none',
+                            padding: '10px 15px',
+                            borderRadius: '8px',
+                            fontWeight: 'bold',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '8px',
+                            marginTop: '5px',
+                            cursor: 'pointer',
+                            transition: '0.2s',
+                            boxShadow: '0 2px 5px rgba(0,0,0,0.2)'
+                        }}
+                        onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.02)'}
+                        onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                    >
+                        <Phone size={18} /> Falar com Eduardo
+                    </a>
+                </div>
+            );
+        }
+        // Se não tiver código, mostra texto normal
+        return texto;
+    };
 
     const enviarMensagem = async () => {
         if (!input.trim()) return;
@@ -27,11 +67,16 @@ export function Chatbot() {
         setCarregando(true);
 
         try {
-            const resposta = await axios.post('https://radiantes-solar-production.up.railway.app/api/chat', {
-                mensagem: novaMensagemUsuario.texto
+            // Ajuste aqui a URL se necessário (local ou railway)
+            const resposta = await axios.post('https://radiantes-solar-production.up.railway.app/api/chat', { // Confirme se a rota no backend é /chat ou /api/chat
+                mensagem: novaMensagemUsuario.texto // Importante: O backend espera "message" ou "mensagem"? Verifique no AiController
             });
 
-            const novaMensagemIa = { autor: 'ia', texto: resposta.data.resposta };
+            // O backend deve retornar { resposta: "..." } ou o texto direto
+            // Ajuste conforme seu retorno real. Geralmente string direta se for AiAgentService
+            const textoResposta = typeof resposta.data === 'string' ? resposta.data : resposta.data.resposta || resposta.data;
+
+            const novaMensagemIa = { autor: 'ia', texto: textoResposta };
             setMensagens((prev) => [...prev, novaMensagemIa]);
         } catch (erro) {
             console.error(erro);
@@ -87,18 +132,19 @@ export function Chatbot() {
                         alignSelf: msg.autor === 'usuario' ? 'flex-end' : 'flex-start',
                         backgroundColor: msg.autor === 'usuario' ? 'var(--radiante-blue)' : 'white',
                         color: msg.autor === 'usuario' ? 'white' : '#1e293b',
-                        padding: '10px 15px', borderRadius: '12px', maxWidth: '80%',
+                        padding: '10px 15px', borderRadius: '12px', maxWidth: '85%', // Aumentei um pouco para caber o botão
                         boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
                         borderBottomRightRadius: msg.autor === 'usuario' ? '0' : '12px',
                         borderBottomLeftRadius: msg.autor === 'ia' ? '0' : '12px',
-                        fontSize: '0.9rem'
+                        fontSize: '0.9rem',
+                        wordWrap: 'break-word'
                     }}>
-                        {msg.texto}
+                        {/* AQUI APLICAMOS A FUNÇÃO MÁGICA */}
+                        {renderizarMensagem(msg.texto)}
                     </div>
                 ))}
-                {carregando && <p style={{ fontSize: '0.8rem', color: '#94a3b8', fontStyle: 'italic' }}>Clara está digitando...</p>}
+                {carregando && <p style={{ fontSize: '0.8rem', color: '#94a3b8', fontStyle: 'italic', marginLeft: '10px' }}>Clara está digitando...</p>}
 
-                {/* 3. AQUI ESTÁ O TRUQUE: Um elemento invisível no final que "puxa" a rolagem */}
                 <div ref={fimDoChatRef} />
             </div>
 
