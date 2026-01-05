@@ -2,19 +2,20 @@ import { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
 import './App.css';
 import { Admin } from './Admin';
-import { MessageCircle, Lock, User, Phone, MapPin, Zap, Bot, X, Send, Star } from 'lucide-react';
+// ADICIONEI O ICONE "PHONE" AQUI NOS IMPORTS
+import { MessageCircle, Lock, Phone, Bot, X, Send } from 'lucide-react';
 import { DepoimentosClientes } from './DepoimentosClientes';
 import { Rodape } from './Rodape';
 import logo from './assets/logo.jpg';
 
 function App() {
-    // --- LÓGICA (Mantida igual) ---
+    // --- LÓGICA DO SITE ---
     const [dados, setDados] = useState({ nome: '', telefone: '', cidade: '', valorConta: '' });
     const [kitSugerido, setKitSugerido] = useState(null);
     const [loading, setLoading] = useState(false);
     const [telaAdmin, setTelaAdmin] = useState(false);
 
-    // --- Chat da Clara ---
+    // --- LÓGICA DO CHAT (CLARA) ---
     const [chatAberto, setChatAberto] = useState(false);
     const [mensagens, setMensagens] = useState([
         { tipo: 'bot', texto: 'Olá! Sou a Clara, I.A. da Radiante\'s. ☀️ Digite o valor da sua conta para eu te ajudar!' }
@@ -28,6 +29,37 @@ function App() {
     }, [mensagens, chatAberto]);
 
     const handleChange = (e) => setDados({ ...dados, [e.target.name]: e.target.value });
+
+    // --- FUNÇÃO MÁGICA: CRIA O BOTÃO VERDE DO WHATSAPP ---
+    const renderizarMensagem = (texto) => {
+        if (!texto) return null;
+
+        // Se encontrar o código secreto...
+        if (texto.includes('[BTN_ZAP]')) {
+            const textoLimpo = texto.replace('[BTN_ZAP]', '');
+
+            return (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    <span>{textoLimpo}</span>
+                    <a
+                        href="https://wa.me/5569992825501?text=Olá,%20estava%20falando%20com%20a%20Clara%20e%20gostaria%20de%20fechar%20o%20negócio!"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{
+                            backgroundColor: '#25D366', color: 'white', textDecoration: 'none',
+                            padding: '10px 15px', borderRadius: '8px', fontWeight: 'bold',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                            marginTop: '5px', cursor: 'pointer', boxShadow: '0 2px 5px rgba(0,0,0,0.1)'
+                        }}
+                    >
+                        <Phone size={18} /> Falar com Eduardo
+                    </a>
+                </div>
+            );
+        }
+        // Se não tiver código, devolve texto normal
+        return <span>{texto}</span>;
+    };
 
     const simular = async () => {
         if (!dados.nome || !dados.valorConta || !dados.telefone) {
@@ -43,7 +75,7 @@ function App() {
             });
             setKitSugerido(resposta.data);
         } catch (erro) {
-            alert("Opa! O servidor Java parece desligado. Verifique o IntelliJ.");
+            alert("Opa! O servidor parece desligado.");
         } finally {
             setLoading(false);
         }
@@ -58,14 +90,24 @@ function App() {
     const enviarMensagemChat = async () => {
         if (!inputChat.trim()) return;
         const textoUsuario = inputChat;
+
+        // Adiciona mensagem do usuário na tela
         setMensagens(prev => [...prev, { tipo: 'user', texto: textoUsuario }]);
         setInputChat('');
         setCarregandoChat(true);
+
         try {
-            const resposta = await axios.get(`https://radiantes-solar-production.up.railway.app/api/chat?pergunta=${encodeURIComponent(textoUsuario)}`);
-            setMensagens(prev => [...prev, { tipo: 'bot', texto: resposta.data }]);
+            // CORREÇÃO: Usando POST para a IA funcionar
+            const resposta = await axios.post('https://radiantes-solar-production.up.railway.app/api/chat', {
+                mensagem: textoUsuario
+            });
+
+            const textoIa = typeof resposta.data === 'string' ? resposta.data : resposta.data.resposta || resposta.data;
+
+            setMensagens(prev => [...prev, { tipo: 'bot', texto: textoIa }]);
         } catch (erro) {
-            setMensagens(prev => [...prev, { tipo: 'bot', texto: 'Estou sem sinal com o servidor agora. 📡 Tente mais tarde!' }]);
+            console.error(erro);
+            setMensagens(prev => [...prev, { tipo: 'bot', texto: 'Minha conexão oscilou. 📡 Tente novamente!' }]);
         } finally {
             setCarregandoChat(false);
         }
@@ -81,13 +123,7 @@ function App() {
                     <img
                         src={logo}
                         alt="Logo Radiante's"
-                        style={{
-                            width: '60px',
-                            height: '60px',
-                            borderRadius: '50%',
-                            marginRight: '15px',
-                            border: '2px solid #fbbf24'
-                        }}
+                        style={{ width: '60px', height: '60px', borderRadius: '50%', marginRight: '15px', border: '2px solid #fbbf24' }}
                     />
                     <span className="brand-name">Radiante's Energia Solar</span>
                 </header>
@@ -107,12 +143,9 @@ function App() {
                             <p style={{ color: '#64748b', fontSize: '0.9rem' }}>Descubra quanto você vai poupar em segundos.</p>
                         </div>
 
-                        {/* --- MUDANÇA AQUI: ÍCONES REMOVIDOS --- */}
-
                         <div className="input-group">
                             <label>Nome Completo</label>
                             <div className="input-wrapper">
-                                {/* Ícone User removido aqui */}
                                 <input name="nome" placeholder="Seu nome" value={dados.nome} onChange={handleChange} />
                             </div>
                         </div>
@@ -120,7 +153,6 @@ function App() {
                         <div className="input-group">
                             <label>WhatsApp</label>
                             <div className="input-wrapper">
-                                {/* Ícone Phone removido aqui */}
                                 <input name="telefone" placeholder="(69) 99999-9999" value={dados.telefone} onChange={handleChange} />
                             </div>
                         </div>
@@ -128,7 +160,6 @@ function App() {
                         <div className="input-group">
                             <label>Cidade</label>
                             <div className="input-wrapper">
-                                {/* Ícone MapPin removido aqui */}
                                 <input name="cidade" placeholder="Ex: Ji-Paraná" value={dados.cidade} onChange={handleChange} />
                             </div>
                         </div>
@@ -136,12 +167,9 @@ function App() {
                         <div className="input-group">
                             <label>Valor da Conta (R$)</label>
                             <div className="input-wrapper">
-                                {/* Ícone Zap removido aqui */}
                                 <input name="valorConta" type="number" placeholder="Ex: 500" value={dados.valorConta} onChange={handleChange} />
                             </div>
                         </div>
-
-                        {/* --- FIM DAS MUDANÇAS --- */}
 
                         <button onClick={simular} disabled={loading} className="btn-simular">
                             {loading ? "Calculando..." : "Ver Meu Projeto 🚀"}
@@ -205,6 +233,8 @@ function App() {
                         </div>
                         <X size={24} style={{ cursor: 'pointer', color: '#78350f', opacity: 0.7 }} onClick={() => setChatAberto(false)} />
                     </div>
+
+                    {/* ÁREA DAS MENSAGENS */}
                     <div style={{ flex: 1, padding: '20px', overflowY: 'auto', background: '#f8fafc', display: 'flex', flexDirection: 'column', gap: '15px' }}>
                         {mensagens.map((msg, index) => (
                             <div key={index} style={{
@@ -212,14 +242,16 @@ function App() {
                                 background: msg.tipo === 'user' ? '#fbbf24' : 'white',
                                 color: msg.tipo === 'user' ? '#78350f' : '#334155',
                                 padding: '12px 16px', borderRadius: '16px', borderBottomRightRadius: msg.tipo === 'user' ? '4px' : '16px', borderBottomLeftRadius: msg.tipo === 'bot' ? '4px' : '16px',
-                                maxWidth: '80%', boxShadow: '0 2px 5px rgba(0,0,0,0.05)', fontSize: '0.95rem', lineHeight: '1.4'
+                                maxWidth: '85%', boxShadow: '0 2px 5px rgba(0,0,0,0.05)', fontSize: '0.95rem', lineHeight: '1.4'
                             }}>
-                                {msg.texto}
+                                {/* AQUI ESTÁ A CORREÇÃO FINAL: USANDO A FUNÇÃO MÁGICA */}
+                                {msg.tipo === 'bot' ? renderizarMensagem(msg.texto) : msg.texto}
                             </div>
                         ))}
                         {carregandoChat && <div style={{ alignSelf: 'flex-start', color: '#94a3b8', fontSize: '0.8rem', paddingLeft: '10px' }}>Digitando...</div>}
                         <div ref={fimDoChatRef} />
                     </div>
+
                     <div style={{ padding: '15px', borderTop: '1px solid #f1f5f9', display: 'flex', gap: '10px', background: 'white' }}>
                         <input
                             value={inputChat}
@@ -242,4 +274,5 @@ function App() {
     );
 }
 
+// Comentario para forçar update: App corrigido com botão
 export default App;
