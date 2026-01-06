@@ -2,7 +2,6 @@ import { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
 import './App.css';
 import { Admin } from './Admin';
-// ADICIONEI O ICONE "PHONE" AQUI NOS IMPORTS
 import { MessageCircle, Lock, Phone, Bot, X, Send } from 'lucide-react';
 import { DepoimentosClientes } from './DepoimentosClientes';
 import { Rodape } from './Rodape';
@@ -34,10 +33,8 @@ function App() {
     const renderizarMensagem = (texto) => {
         if (!texto) return null;
 
-        // Se encontrar o código secreto...
         if (texto.includes('[BTN_ZAP]')) {
             const textoLimpo = texto.replace('[BTN_ZAP]', '');
-
             return (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                     <span>{textoLimpo}</span>
@@ -57,7 +54,6 @@ function App() {
                 </div>
             );
         }
-        // Se não tiver código, devolve texto normal
         return <span>{texto}</span>;
     };
 
@@ -90,23 +86,17 @@ function App() {
     const enviarMensagemChat = async () => {
         if (!inputChat.trim()) return;
         const textoUsuario = inputChat;
-
-        // Adiciona mensagem do usuário na tela
         setMensagens(prev => [...prev, { tipo: 'user', texto: textoUsuario }]);
         setInputChat('');
         setCarregandoChat(true);
 
         try {
-            // CORREÇÃO: Usando POST para a IA funcionar
             const resposta = await axios.post('https://radiantes-solar-production.up.railway.app/api/chat', {
                 mensagem: textoUsuario
             });
-
             const textoIa = typeof resposta.data === 'string' ? resposta.data : resposta.data.resposta || resposta.data;
-
             setMensagens(prev => [...prev, { tipo: 'bot', texto: textoIa }]);
         } catch (erro) {
-            console.error(erro);
             setMensagens(prev => [...prev, { tipo: 'bot', texto: 'Minha conexão oscilou. 📡 Tente novamente!' }]);
         } finally {
             setCarregandoChat(false);
@@ -142,39 +132,33 @@ function App() {
                             <h2 style={{ fontSize: '1.8rem', color: '#1e293b', margin: 0 }}>Simule sua Economia</h2>
                             <p style={{ color: '#64748b', fontSize: '0.9rem' }}>Descubra quanto você vai poupar em segundos.</p>
                         </div>
-
                         <div className="input-group">
                             <label>Nome Completo</label>
                             <div className="input-wrapper">
                                 <input name="nome" placeholder="Seu nome" value={dados.nome} onChange={handleChange} />
                             </div>
                         </div>
-
                         <div className="input-group">
                             <label>WhatsApp</label>
                             <div className="input-wrapper">
                                 <input name="telefone" placeholder="(69) 99999-9999" value={dados.telefone} onChange={handleChange} />
                             </div>
                         </div>
-
                         <div className="input-group">
                             <label>Cidade</label>
                             <div className="input-wrapper">
                                 <input name="cidade" placeholder="Ex: Ji-Paraná" value={dados.cidade} onChange={handleChange} />
                             </div>
                         </div>
-
                         <div className="input-group">
                             <label>Valor da Conta (R$)</label>
                             <div className="input-wrapper">
                                 <input name="valorConta" type="number" placeholder="Ex: 500" value={dados.valorConta} onChange={handleChange} />
                             </div>
                         </div>
-
                         <button onClick={simular} disabled={loading} className="btn-simular">
                             {loading ? "Calculando..." : "Ver Meu Projeto 🚀"}
                         </button>
-
                         <div style={{ marginTop: '20px', textAlign: 'center' }}>
                             <button onClick={() => setTelaAdmin(true)} style={{ background: 'none', border: 'none', color: '#94a3b8', fontSize: '0.8rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px', margin: '0 auto' }}>
                                 <Lock size={12} /> Área Restrita
@@ -188,7 +172,8 @@ function App() {
 
                         <div className="card-destaque">
                             <span style={{ fontSize: '0.9rem', opacity: 0.9 }}>Economia estimada (25 anos)</span>
-                            <div style={{ fontSize: '2.5rem', fontWeight: '800', marginTop: '5px' }}>
+                            {/* --- MUDANÇA AQUI: CLAMP PARA AJUSTAR FONTE NO CELULAR --- */}
+                            <div style={{ fontSize: 'clamp(1.8rem, 5vw, 2.5rem)', fontWeight: '800', marginTop: '5px', lineHeight: '1.1' }}>
                                 {(kitSugerido.geracaoMensal * 0.95 * 12 * 25).toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'})}
                             </div>
                         </div>
@@ -216,7 +201,6 @@ function App() {
             <DepoimentosClientes />
             <Rodape />
 
-            {/* CHAT WIDGET */}
             {chatAberto && (
                 <div style={{
                     position: 'fixed', bottom: '100px', right: '30px', width: '350px', height: '500px',
@@ -233,8 +217,6 @@ function App() {
                         </div>
                         <X size={24} style={{ cursor: 'pointer', color: '#78350f', opacity: 0.7 }} onClick={() => setChatAberto(false)} />
                     </div>
-
-                    {/* ÁREA DAS MENSAGENS */}
                     <div style={{ flex: 1, padding: '20px', overflowY: 'auto', background: '#f8fafc', display: 'flex', flexDirection: 'column', gap: '15px' }}>
                         {mensagens.map((msg, index) => (
                             <div key={index} style={{
@@ -244,14 +226,12 @@ function App() {
                                 padding: '12px 16px', borderRadius: '16px', borderBottomRightRadius: msg.tipo === 'user' ? '4px' : '16px', borderBottomLeftRadius: msg.tipo === 'bot' ? '4px' : '16px',
                                 maxWidth: '85%', boxShadow: '0 2px 5px rgba(0,0,0,0.05)', fontSize: '0.95rem', lineHeight: '1.4'
                             }}>
-                                {/* AQUI ESTÁ A CORREÇÃO FINAL: USANDO A FUNÇÃO MÁGICA */}
                                 {msg.tipo === 'bot' ? renderizarMensagem(msg.texto) : msg.texto}
                             </div>
                         ))}
                         {carregandoChat && <div style={{ alignSelf: 'flex-start', color: '#94a3b8', fontSize: '0.8rem', paddingLeft: '10px' }}>Digitando...</div>}
                         <div ref={fimDoChatRef} />
                     </div>
-
                     <div style={{ padding: '15px', borderTop: '1px solid #f1f5f9', display: 'flex', gap: '10px', background: 'white' }}>
                         <input
                             value={inputChat}
@@ -266,7 +246,6 @@ function App() {
                     </div>
                 </div>
             )}
-
             <button className="btn-clara-flutuante" onClick={() => setChatAberto(!chatAberto)}>
                 {chatAberto ? <X size={24} color="#78350f"/> : <Bot size={32} color="#fbbf24" />}
             </button>
@@ -274,5 +253,4 @@ function App() {
     );
 }
 
-// Comentario para forçar update: App corrigido com botão
 export default App;
